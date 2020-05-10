@@ -4,10 +4,15 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from core.models import Recipe
-from recipe.serializers import RecipeSerializer
+from core.models import Recipe, Ingreedient, Tag
+from recipe.serializers import RecipeSerializer, RecipeDetailSerializer
 
 RECIPE_URL = reverse('recipe:recipe-list')
+
+
+def detail_url(recipe_id):
+    """ Return recipe detail url """
+    return reverse('recipe:recipe-detail', args=[recipe_id])
 
 
 def sample_recepe(user, **params):
@@ -23,6 +28,16 @@ def sample_recepe(user, **params):
         user=user,
         **defaults
     )
+
+
+def sampe_tag(user, name="Main course"):
+    """ Create and returns a sample tag """
+    return Tag.objects.create(user=user, name=name)
+
+
+def sampe_ingreedient(user, name="Cinnoman"):
+    """ Create and returns a sample ingreedient """
+    return Ingreedient.objects.create(user=user, name=name)
 
 
 class PublicRecipeAPITest(TestCase):
@@ -75,4 +90,16 @@ class PrivateRecipeAPITest(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(len(res.data), 1)
+        self.assertEqual(res.data, serializer.data)
+
+    def test_view_recipe_details(self):
+        """ Test viewving a recipe detail """
+        recipe = sample_recepe(user=self.user)
+        recipe.tags.add(sampe_tag(user=self.user))
+        recipe.ingreedient.add(sampe_ingreedient(self.user))
+
+        url = detail_url(recipe.id)
+        res = self.client.get(url)
+
+        serializer = RecipeDetailSerializer(recipe)
         self.assertEqual(res.data, serializer.data)
