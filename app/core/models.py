@@ -61,3 +61,20 @@ class Ingreedient(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class Recipe(models.Model):
+    """ recipe object """
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE
+    )
+    title = models.CharField(max_length=255)
+    time_miniutes = models.IntegerField()
+    price = models.DecimalField(max_digits=5, decimal_places=2)
+    link = models.CharField(max_length=255, blank=True)
+    ingreedient = models.ManyToManyField('Ingreedient')
+    tags = models.ManyToManyField('Tag')
+
+    def __str__(self):
+        return self.title

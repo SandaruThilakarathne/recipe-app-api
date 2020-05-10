@@ -59,3 +59,14 @@ class ModelTests(TestCase):
         )
 
         self.assertEqual(str(ingreedient), ingreedient.name)
+
+    def test_recipe_str(self):
+        """ Test the recipe string representation """
+        recepe = models.Recipe.objects.create(
+            user=sample_user(),
+            title='Steak and mushroom sauce',
+            time_miniutes=5,
+            price=5.00,
+        )
+
+        self.assertEqual(str(recepe), recepe.title)
