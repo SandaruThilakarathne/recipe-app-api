@@ -156,3 +156,44 @@ class PrivateRecipeAPITest(TestCase):
         self.assertEqual(ingreedient.count(), 2)
         self.assertIn(Ingreedient1, ingreedient)
         self.assertIn(Ingreedient2, ingreedient)
+
+    def test_partial_update_recipe(self):
+        """ Test updateing recipe with patch """
+        recipe = sample_recepe(user=self.user)
+        recipe.tags.add(sampe_tag(user=self.user))
+        new_tag = sampe_tag(user=self.user, name='Curry')
+
+        payload = {
+            'title': 'Chicken tikka',
+            'tags': [new_tag.id]
+        }
+
+        url = detail_url(recipe.id)
+        self.client.patch(url, payload)
+
+        recipe.refresh_from_db()
+        self.assertEqual(recipe.title, payload['title'])
+        tags = recipe.tags.all()
+        self.assertEqual(len(tags), 1)
+        self.assertIn(new_tag, tags)
+
+    def test_full_update(self):
+        """ Test update recipe with put """
+        recipe = sample_recepe(user=self.user)
+        recipe.tags.add(sampe_tag(user=self.user))
+
+        payload = {
+            'title': 'Spagehetti carbonara',
+            'time_miniutes': 25,
+            'price': 5.00
+        }
+
+        url = detail_url(recipe.id)
+        self.client.put(url, payload)
+
+        recipe.refresh_from_db()
+        self.assertEqual(recipe.title, payload['title'])
+        self.assertEqual(recipe.time_miniutes, payload['time_miniutes'])
+        self.assertEqual(recipe.price, payload['price'])
+        tags = recipe.tags.all()
+        self.assertEqual(len(tags), 0)
