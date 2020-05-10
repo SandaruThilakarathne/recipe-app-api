@@ -103,3 +103,56 @@ class PrivateRecipeAPITest(TestCase):
 
         serializer = RecipeDetailSerializer(recipe)
         self.assertEqual(res.data, serializer.data)
+
+    def test_create_basic_recipe(self):
+        """ Test creating recipe """
+        paylaod = {
+            "title": "Chocolate cheesecake",
+            "time_miniutes": 30,
+            "price": 5.00
+        }
+
+        res = self.client.post(RECIPE_URL, paylaod)
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        recipe = Recipe.objects.get(id=res.data['id'])
+        for key in paylaod.keys():
+            self.assertEqual(paylaod[key], getattr(recipe, key))
+
+    def test_create_recipe_with_tags(self):
+        """ Test creating recipe with tags  """
+        tag1 = sampe_tag(user=self.user, name='Vegan')
+        tag2 = sampe_tag(user=self.user, name='Dessart')
+
+        payload = {
+            'title': 'Avacado lime cheesecake',
+            'tags': [tag1.id, tag2.id],
+            'time_miniutes': 60,
+            'price': 20.00
+        }
+
+        res = self.client.post(RECIPE_URL, payload)
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        recipe = Recipe.objects.get(id=res.data['id'])
+        tags = recipe.tags.all()
+        self.assertEqual(tags.count(), 2)
+        self.assertIn(tag1, tags)
+        self.assertIn(tag2, tags)
+
+    def test_create_recipe_with_ingreedients(self):
+        """ Test creating recipe with ingreedients """
+        Ingreedient1 = sampe_ingreedient(user=self.user, name='Prawns')
+        Ingreedient2 = sampe_ingreedient(user=self.user, name='Ginger')
+        payload = {
+            'title': 'Thai prawn red curry',
+            'ingreedient': [Ingreedient1.id, Ingreedient2.id],
+            'time_miniutes': 20,
+            'price': 7.00
+        }
+
+        res = self.client.post(RECIPE_URL, payload)
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        recipe = Recipe.objects.get(id=res.data['id'])
+        ingreedient = recipe.ingreedient.all()
+        self.assertEqual(ingreedient.count(), 2)
+        self.assertIn(Ingreedient1, ingreedient)
+        self.assertIn(Ingreedient2, ingreedient)
